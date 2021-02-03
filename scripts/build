@@ -1,0 +1,115 @@
+#!/usr/bin/env python3
+
+import subprocess
+import sys
+from platform import machine
+import re
+import json
+import argparse
+
+
+def get_current_platform():
+    arch = machine()
+    if arch == "x86_64":
+        return "linux/amd64"
+    elif arch == "aarch64":
+        return "linux/arm64"
+    else:
+        print("Unsupported architecture: %s", arch)
+        sys.exit(1)
+
+
+def build(platform, tag):
+    arch = platform.split("/")[1]
+    arch_tag = f"{tag}__{arch}"
+    if platform == current_platform:
+        cmd = f"docker build -t {arch_tag} --progress plain ."
+    else:
+        cmd = f"docker buildx build --load --platform {platform} -t {arch_tag} --progress plain ."
+    print(cmd)
+    subprocess.check_call(cmd, shell=True)
+    return arch_tag
+
+
+def push(tag):
+    cmd = f"docker push {tag}"
+    print(cmd)
+    output = subprocess.check_output(cmd, shell=True)
+    last_line = output.decode().splitlines()[-1]
+    print(last_line)
+    p = re.compile(r"^.*(sha256:\w+).*$")
+    m = p.match(last_line)
+    return m.group(1)
+
+
+def update_manifest_list(tag, platform, digest):
+    print("Updating manifest list \"%s\"..." % tag)
+
+    manifests = {}
+    found = False
+
+    try:
+        cmd = f"docker manifest inspect {tag}"
+        print(cmd)
+        output = subprocess.check_output(cmd, shell=True)
+        j = json.loads(output)
+        if "manifests" in j:
+            for m in j["manifests"]:
+                p = "{}/{}".format(m["platform"]["os"], m["platform"]["architecture"])
+                if platform == p:
+                    found = True
+                    manifests[p] = digest
+                    print(p, m["digest"], "->", digest)
+                    if m["digest"] == digest:
+                        print("It's up-to-date.")
+                        return
+                else:
+                    manifests[p] = m["digest"]
+                    print(p, m["digest"])
+    except subprocess.CalledProcessError:
+        pass
+
+    if not found:
+        manifests[platform] = digest
+        print(platform, digest, "*")
+
+    cmd = f"docker manifest rm {tag}"
+    try:
+        print(cmd)
+        subprocess.check_call(cmd, shell=True)
+    except subprocess.CalledProcessError:
+        pass
+
+    cmd = "docker manifest create {} {}".format(tag, " ".join([f"{repo}@{digest}" for digest in manifests.values()]))
+    print(cmd)
+    subprocess.check_call(cmd, shell=True)
+
+    cmd = f"docker manifest push -p {tag}"
+    print(cmd)
+    subprocess.check_call(cmd, shell=True)
+
+
+if __name__ == '__main__':
+    try:
+        current_platform = get_current_platform()
+
+        parser = argparse.ArgumentParser()
+        parser.add_argument("-p", "--platform", nargs="?", default=current_platform)
+        parser.add_argument("-r", "--registry", nargs="?", default="")
+        parser.add_argument("tag", nargs="?", default="latest")
+        args = parser.parse_args()
+
+        repo = "opendexnetwork/proxy"
+        p = args.platform
+        if args.registry != "" and not args.registry.endswith("/"):
+            r = args.registry + "/"
+        else:
+            r = args.registry
+        repo = r + repo
+        t = f"{repo}:{args.tag}"
+        arch_tag = build(platform=p, tag=t)
+        digest = push(arch_tag)
+        update_manifest_list(t, p, digest)
+    except subprocess.CalledProcessError as e:
+        print(e)
+        sys.exit(1)
