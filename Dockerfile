@@ -17,7 +17,8 @@ RUN yarn install
 RUN yarn build
 
 FROM alpine:3.12
-RUN apk add --no-cache openssl docker-cli
+# we need bash here becuase we launcher opendex-console inside
+RUN apk add --no-cache openssl docker-cli bash
 COPY --from=builder /src/proxy /usr/local/bin/proxy
 COPY --from=ui-builder /src/build ./ui
 ENTRYPOINT ["proxy"]
