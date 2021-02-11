@@ -96,6 +96,7 @@ if __name__ == '__main__':
         parser = argparse.ArgumentParser()
         parser.add_argument("-p", "--platform", nargs="?", default=current_platform)
         parser.add_argument("-r", "--registry", nargs="?", default="")
+        parser.add_argument("--push", action="store_true")
         parser.add_argument("tag", nargs="?", default="latest")
         args = parser.parse_args()
 
@@ -108,8 +109,9 @@ if __name__ == '__main__':
         repo = r + repo
         t = f"{repo}:{args.tag}"
         arch_tag = build(platform=p, tag=t)
-        digest = push(arch_tag)
-        update_manifest_list(t, p, digest)
+        if args.push:
+            digest = push(arch_tag)
+            update_manifest_list(t, p, digest)
     except subprocess.CalledProcessError as e:
         print(e)
         sys.exit(1)
