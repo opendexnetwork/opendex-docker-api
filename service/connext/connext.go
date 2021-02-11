@@ -2,11 +2,12 @@ package connext
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
+	docker "github.com/docker/docker/client"
 	"github.com/opendexnetwork/opendex-docker-api/config"
 	"github.com/opendexnetwork/opendex-docker-api/service/core"
 	"github.com/opendexnetwork/opendex-docker-api/service/opendexd"
-	docker "github.com/docker/docker/client"
 )
 
 type Service struct {
@@ -57,14 +58,20 @@ func (t *Service) GetStatus(ctx context.Context) string {
 }
 
 func (t *Service) GetEthProvider() (string, error) {
-	value, err := t.Getenv("CONNEXT_ETH_PROVIDER_URL")
+	value, err := t.Getenv("VECTOR_CONFIG")
 	if err != nil {
 		return "", err
 	}
 	if value == "" {
-		return "", errors.New("CONNEXT_ETH_PROVIDER_URL not found")
+		return "", errors.New("VECTOR_CONFIG not found")
 	}
-	return value, nil
+	var config struct {
+		chainProviders map[string]string
+	}
+	if err := json.Unmarshal([]byte(value), &config); err != nil {
+		return "", err
+	}
+	return config.chainProviders["4"], nil
 }
 
 func (t *Service) Close() error {
