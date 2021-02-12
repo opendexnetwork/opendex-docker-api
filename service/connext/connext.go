@@ -65,13 +65,14 @@ func (t *Service) GetEthProvider() (string, error) {
 	if value == "" {
 		return "", errors.New("VECTOR_CONFIG not found")
 	}
-	var config struct {
-		chainProviders map[string]string
+	var cfg struct {
+		ChainProviders map[string]string `json:"chainProviders"`
 	}
-	if err := json.Unmarshal([]byte(value), &config); err != nil {
+	if err := json.Unmarshal([]byte(value), &cfg); err != nil {
 		return "", err
 	}
-	return config.chainProviders["4"], nil
+	// FIXME don't use "4" in mainnet, better remove this magic number
+	return cfg.ChainProviders["4"], nil
 }
 
 func (t *Service) Close() error {
