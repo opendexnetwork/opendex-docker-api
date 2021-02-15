@@ -126,7 +126,7 @@ func (t *Launcher) GetInfo() (*json.RawMessage, error){
 }
 
 type BackupSettings struct {
-	Location string
+	Location string `json:"location"`
 }
 
 func UpdateBackup(settings BackupSettings) (bool, error) {
