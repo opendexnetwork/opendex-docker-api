@@ -25,10 +25,12 @@ func ConfigureRouter(r *gin.Engine) {
 			err := c.BindJSON(&settings)
 			if err != nil {
 				utils.JsonError(c, err.Error(), http.StatusBadRequest)
+				return
 			}
 			ok, err := UpdateBackup(settings)
 			if ok {
 				c.Status(http.StatusNoContent)
+				return
 			}
 			if err != nil {
 				utils.JsonError(c, err.Error(), http.StatusBadRequest)
