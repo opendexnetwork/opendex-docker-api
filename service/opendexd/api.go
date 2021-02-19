@@ -134,7 +134,7 @@ func (t *Service) ConfigureRouter(r *gin.RouterGroup) {
 		defer cancel()
 		resp, err := t.ChangePassword(ctx, params.NewPassword, params.OldPassword)
 		// ignore file removal error here
-		_ = os.Remove("/root/network/.default-password")
+		_ = os.Remove("/root/network/.password-unset")
 		utils.HandleProtobufResponse(c, resp, err)
 	})
 
