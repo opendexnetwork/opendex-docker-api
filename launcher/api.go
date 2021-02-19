@@ -38,9 +38,6 @@ func ConfigureRouter(r *gin.Engine) {
 				utils.JsonError(c, "", http.StatusBadRequest)
 			}
 		})
-		api.GET("/v1/launcher/setup-status", func(c *gin.Context) {
-
-		})
 	}
 }
 
