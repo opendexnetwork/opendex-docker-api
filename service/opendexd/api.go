@@ -75,6 +75,7 @@ func (t *Service) ConfigureRouter(r *gin.RouterGroup) {
 		err := c.BindJSON(&params)
 		if err != nil {
 			utils.JsonError(c, err.Error(), http.StatusBadRequest)
+			return
 		}
 		ctx, cancel := context.WithTimeout(context.Background(), config.DefaultApiTimeout)
 		defer cancel()
@@ -87,6 +88,7 @@ func (t *Service) ConfigureRouter(r *gin.RouterGroup) {
 		err := c.BindJSON(&params)
 		if err != nil {
 			utils.JsonError(c, err.Error(), http.StatusBadRequest)
+			return
 		}
 
 		lndBTC, err := ioutil.ReadFile(filepath.Join(params.BackupDir, "lnd-BTC"))
@@ -113,6 +115,7 @@ func (t *Service) ConfigureRouter(r *gin.RouterGroup) {
 		err := c.BindJSON(&params)
 		if err != nil {
 			utils.JsonError(c, err.Error(), http.StatusBadRequest)
+			return
 		}
 		ctx, cancel := context.WithTimeout(context.Background(), config.DefaultApiTimeout)
 		defer cancel()
@@ -125,14 +128,13 @@ func (t *Service) ConfigureRouter(r *gin.RouterGroup) {
 		err := c.BindJSON(&params)
 		if err != nil {
 			utils.JsonError(c, err.Error(), http.StatusBadRequest)
+			return
 		}
 		ctx, cancel := context.WithTimeout(context.Background(), config.DefaultApiTimeout)
 		defer cancel()
 		resp, err := t.ChangePassword(ctx, params.NewPassword, params.OldPassword)
-		err = os.Remove("/root/network/.default-password")
-		if err != nil {
-			utils.JsonError(c, err.Error(), http.StatusInternalServerError)
-		}
+		// ignore file removal error here
+		_ = os.Remove("/root/network/.default-password")
 		utils.HandleProtobufResponse(c, resp, err)
 	})
 
@@ -155,6 +157,7 @@ func (t *Service) ConfigureRouter(r *gin.RouterGroup) {
 		err := c.BindQuery(&params)
 		if err != nil {
 			utils.JsonError(c, err.Error(), http.StatusBadRequest)
+			return
 		}
 		ctx, cancel := context.WithTimeout(context.Background(), config.DefaultApiTimeout)
 		defer cancel()
@@ -167,6 +170,7 @@ func (t *Service) ConfigureRouter(r *gin.RouterGroup) {
 		err := c.BindQuery(&params)
 		if err != nil {
 			utils.JsonError(c, err.Error(), http.StatusBadRequest)
+			return
 		}
 		ctx, cancel := context.WithTimeout(context.Background(), config.DefaultApiTimeout)
 		defer cancel()
@@ -179,6 +183,7 @@ func (t *Service) ConfigureRouter(r *gin.RouterGroup) {
 		err := c.BindJSON(&params)
 		if err != nil {
 			utils.JsonError(c, err.Error(), http.StatusBadRequest)
+			return
 		}
 		ctx, cancel := context.WithTimeout(context.Background(), config.DefaultApiTimeout)
 		defer cancel()
@@ -191,6 +196,7 @@ func (t *Service) ConfigureRouter(r *gin.RouterGroup) {
 		err := c.BindJSON(&params)
 		if err != nil {
 			utils.JsonError(c, err.Error(), http.StatusBadRequest)
+			return
 		}
 		ctx, cancel := context.WithTimeout(context.Background(), config.DefaultApiTimeout)
 		defer cancel()
