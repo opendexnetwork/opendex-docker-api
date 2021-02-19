@@ -129,10 +129,8 @@ func (t *Service) ConfigureRouter(r *gin.RouterGroup) {
 		ctx, cancel := context.WithTimeout(context.Background(), config.DefaultApiTimeout)
 		defer cancel()
 		resp, err := t.ChangePassword(ctx, params.NewPassword, params.OldPassword)
-		err = os.Remove("/root/network/.default-password")
-		if err != nil {
-			utils.JsonError(c, err.Error(), http.StatusInternalServerError)
-		}
+		// ignore file removal error here
+		_ = os.Remove("/root/network/.default-password")
 		utils.HandleProtobufResponse(c, resp, err)
 	})
 
