@@ -39,11 +39,12 @@ var (
 )
 
 type Manager struct {
-	network   string
-	services  []core.Service
-	factory   core.DockerClientFactory
-	logger    *logrus.Entry
-	listeners map[string]core.DockerEventListener
+	configPath string
+	network    string
+	services   []core.Service
+	factory    core.DockerClientFactory
+	logger     *logrus.Entry
+	listeners  map[string]core.DockerEventListener
 
 	*LauncherAgent
 }
@@ -52,9 +53,9 @@ func containerName(network string, service string) string {
 	return fmt.Sprintf("%s_%s_1", network, service)
 }
 
-func initServices(network string, dockerClient *docker.Client, listeners map[string]core.DockerEventListener) []core.Service {
+func initServices(configPath string, network string, dockerClient *docker.Client, listeners map[string]core.DockerEventListener) []core.Service {
 
-	f, err := ioutil.ReadFile("/root/network/data/config.json")
+	f, err := ioutil.ReadFile(configPath)
 	if err != nil {
 		panic(err)
 	}
@@ -128,7 +129,7 @@ func initServices(network string, dockerClient *docker.Client, listeners map[str
 	return result
 }
 
-func NewManager(network string) (*Manager, error) {
+func NewManager(network string, configPath string) (*Manager, error) {
 	factory, err := core.NewClientFactory()
 	if err != nil {
 		return nil, err
@@ -140,7 +141,8 @@ func NewManager(network string) (*Manager, error) {
 
 	manager := Manager{
 		network:       network,
-		services:      initServices(network, factory.GetSharedInstance(), listeners),
+		configPath:    configPath,
+		services:      initServices(network, configPath, factory.GetSharedInstance(), listeners),
 		factory:       factory,
 		logger:        logger,
 		listeners:     listeners,
