@@ -9,7 +9,7 @@ RUN make
 
 FROM node:14-alpine3.12 AS ui-builder
 RUN apk add --no-cache curl tar gzip
-ARG UI_COMMIT=1434f29f3f52190c05680c7afdbc7e275b4f9ccf
+ARG UI_COMMIT=d53f5e591c8245c5155955f88341fddfabd1f3f9
 RUN curl -sL https://github.com/opendexnetwork/opendex-ui/archive/${UI_COMMIT}.tar.gz --output src.tar.gz
 WORKDIR /src
 RUN tar -xzvf /src.tar.gz --strip-components 1
