@@ -24,6 +24,7 @@ var (
 	router    = initRouter()
 	sioServer *socketio.Server
 
+	configPath string
 	port uint16
 	tls bool
 	network string
@@ -121,7 +122,7 @@ func initLauncherWs() {
 
 func initServiceManager() {
 	logger.Debug("Creating service manager")
-	manager, err := service.NewManager(network)
+	manager, err := service.NewManager(network, configPath)
 	if err != nil {
 		logger.Fatalf("Failed to create service manager: %s", err)
 	}
@@ -178,6 +179,7 @@ func main() {
 		Use: "proxy",
 		Short: "The API gateway of opendexd-docker",
 	}
+	cmd.PersistentFlags().StringVarP(&configPath, "config", "c", "/root/network/data/config.json", "Configuration file")
 	cmd.PersistentFlags().Uint16VarP(&port, "port", "p", 8080, "The port to listen")
 	cmd.PersistentFlags().BoolVar(&tls, "tls", false, "Enable TLS support")
 	err = cmd.Execute()
